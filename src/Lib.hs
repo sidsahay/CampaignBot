@@ -34,7 +34,7 @@ startHandler dis = do
         Right chans <- restCall dis $ R.GetGuildChannels (guildId guild)
         case filter isTextChannel chans of
             (c:_) -> do 
-                _ <- restCall dis $ R.CreateMessage (channelId c) "Hello, I'm the Campaign helper bot. Use $ to prefix bot commands which can be looked up at https://github.com/sidsahay/CampaignBot#readme"
+                --_ <- restCall dis $ R.CreateMessage (channelId c) "Hello, I'm the Campaign helper bot. Use $ to prefix bot commands which can be looked up at https://github.com/sidsahay/CampaignBot#readme"
                 return ()
             _ -> return ()
 
