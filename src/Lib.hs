@@ -43,7 +43,7 @@ eventHandler dis event = case event of
     MessageCreate m -> when (not (fromBot m) && isBotCommand m) $ do
         _ <- restCall dis (R.CreateReaction (messageChannel m, messageId m) "eyes")
         rolledVal <- processMessage m
-        _ <- restCall dis (R.CreateMessage (messageChannel m) (convertText . show $ rolledVal))
+        _ <- restCall dis (R.CreateMessage (messageChannel m) (convertText . prettyPrint $ rolledVal))
         return ()
     _ -> return ()
 
@@ -60,10 +60,14 @@ isBotCommand = ("$" `T.isPrefixOf`) . T.map toLower . messageText
 messageToString :: Message -> String
 messageToString = convertText . messageText
 
-processMessage :: Message -> IO Int
+processMessage :: Message -> IO (Int, [Int])
 processMessage m = let sm = splitOn "d" . tail . messageToString $ m in
     case length sm of
         2 -> let mult :: Int = read (sm !! 0) in
-             let lim :: Int = read (sm !! 1) in
-                liftM (foldl (+) 0) (replicateM mult $ getStdRandom (randomR (1, lim)))
-        _ -> return 0
+             let lim :: Int = read (sm !! 1) in do
+                nums <- replicateM mult $ getStdRandom (randomR (1, lim))
+                return (foldl (+) 0 nums, nums)
+        _ -> return (0, [0])
+
+prettyPrint :: (Int, [Int]) -> String
+prettyPrint (x, xs) = (show x)  ++ " : " ++ (show xs)
