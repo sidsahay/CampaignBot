@@ -1,31 +1,19 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Lib (campaignBotApp) where
 
-import Control.Monad (when, forM_)
+import Control.Monad (when, forM_, replicateM, liftM)
 import Data.Char (toLower)
+import Data.List.Split (splitOn)
+import Data.Text.Conversions(convertText)
+import System.Random
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 
 import Discord
 import Discord.Types
 import qualified Discord.Requests as R
-
-type EntityId = String
-
-data CampaignRole = CampaignDM
-                  | CampaignPlayer
-                  deriving Show
-
-data BotCommand = MapUserToRole User CampaignRole
-                | Roll Int
-                | DamagePhysicalRoll Float Int Int EntityId
-                | DamageMagicalRoll Int Int EntityId
-                | PersuasionRoll Int EntityId
-                | StealthRoll Int EntityId
-                | CritRoll Int EntityId
-                | PerceptionRoll Int
-                deriving Show
 
 campaignBotApp :: IO ()
 campaignBotApp = do
@@ -54,8 +42,8 @@ eventHandler :: DiscordHandle -> Event -> IO ()
 eventHandler dis event = case event of
     MessageCreate m -> when (not (fromBot m) && isBotCommand m) $ do
         _ <- restCall dis (R.CreateReaction (messageChannel m, messageId m) "eyes")
-        _ <- restCall dis (R.CreateMessage (messageChannel m) "Bot command detected.")
-        print m
+        rolledVal <- processMessage m
+        _ <- restCall dis (R.CreateMessage (messageChannel m) (convertText . show $ rolledVal))
         return ()
     _ -> return ()
 
@@ -68,3 +56,14 @@ fromBot m = userIsBot (messageAuthor m)
 
 isBotCommand :: Message -> Bool
 isBotCommand = ("$" `T.isPrefixOf`) . T.map toLower . messageText
+
+messageToString :: Message -> String
+messageToString = convertText . messageText
+
+processMessage :: Message -> IO Int
+processMessage m = let sm = splitOn "d" . tail . messageToString $ m in
+    case length sm of
+        2 -> let mult :: Int = read (sm !! 0) in
+             let lim :: Int = read (sm !! 1) in
+                liftM (foldl (+) 0) (replicateM mult $ getStdRandom (randomR (1, lim)))
+        _ -> return 0
