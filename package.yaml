@@ -27,6 +27,7 @@ dependencies:
 - random == 1.1
 - split == 0.2.3.3
 - text-conversions == 0.3.0
+- regex-tdfa
 
 library:
   source-dirs: src

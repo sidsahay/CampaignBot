@@ -1,15 +1,17 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Lib (campaignBotApp) where
+module Lib where
 
 import Control.Monad (when, forM_, replicateM, liftM)
 import Data.Char (toLower)
 import Data.List.Split (splitOn)
 import Data.Text.Conversions(convertText)
+import Data.Maybe
 import System.Random
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
+import Text.Regex.TDFA
 
 import Discord
 import Discord.Types
@@ -42,8 +44,8 @@ eventHandler :: DiscordHandle -> Event -> IO ()
 eventHandler dis event = case event of
     MessageCreate m -> when (not (fromBot m) && isBotCommand m) $ do
         _ <- restCall dis (R.CreateReaction (messageChannel m, messageId m) "eyes")
-        rolledVal <- processMessage m
-        _ <- restCall dis (R.CreateMessage (messageChannel m) (convertText . prettyPrint $ rolledVal))
+        output <- processMessage m
+        _ <- restCall dis (R.CreateMessage (messageChannel m) (convertText output))
         return ()
     _ -> return ()
 
@@ -60,14 +62,50 @@ isBotCommand = ("$" `T.isPrefixOf`) . T.map toLower . messageText
 messageToString :: Message -> String
 messageToString = convertText . messageText
 
-processMessage :: Message -> IO (Int, [Int])
-processMessage m = let sm = splitOn "d" . tail . messageToString $ m in
-    case length sm of
-        2 -> let mult :: Int = read (sm !! 0) in
-             let lim :: Int = read (sm !! 1) in do
-                nums <- replicateM mult $ getStdRandom (randomR (1, lim))
-                return (foldl (+) 0 nums, nums)
-        _ -> return (0, [0])
+rollDice :: Int -> Int -> IO (Int, [Int])
+rollDice mult lim = do
+    nums <- replicateM mult $ getStdRandom (randomR (1, lim))
+    return (foldl (+) 0 nums, nums)
+
+validInputRegex :: String
+validInputRegex = "^[1-9][0-9]*d[1-9][0-9]*((\\+|-)[0-9]+)*$"
+
+sumOfTermsRegex :: String
+sumOfTermsRegex = "^[1-9][0-9]*((\\+|-)[0-9]+)+$"
 
 prettyPrint :: (Int, [Int]) -> String
 prettyPrint (x, xs) = (show x)  ++ " : " ++ (show xs)
+
+getInt = read :: String -> Int
+
+processSumString :: String -> Int
+processSumString s = 
+    case s of
+        [] -> 0
+        op:rest -> 
+            let pred x = (x /= '+') && (x /= '-') in
+            let (number, remaining) = (getInt $ takeWhile pred rest, dropWhile pred rest) in
+                case op of
+                    '-' -> -1 * number + processSumString remaining
+                    _ -> number + processSumString remaining
+        
+processCommand :: String -> IO String
+processCommand commandString = 
+    case splitOn "d" commandString of
+        [multString, rest] ->
+            let mult = getInt multString in
+            case rest =~ sumOfTermsRegex of
+                False -> prettyPrint <$> rollDice mult (getInt rest)
+                True -> 
+                    let pred x = (x /= '+') && (x /= '-') in
+                    let (limString, sumString) = (takeWhile pred rest, dropWhile pred rest) in do
+                        rolled@(totalVal, _) <- rollDice mult (getInt limString)
+                        return $ (show (totalVal + processSumString sumString)) ++ " :: " ++ (prettyPrint rolled)
+        _ -> return "Invalid input during splitting."
+
+processMessage :: Message -> IO String
+processMessage m = 
+    let messageString = filter (/=' ') . tail . messageToString $ m in
+    case messageString =~ validInputRegex of
+        False -> return "Invalid input."
+        True -> processCommand messageString
