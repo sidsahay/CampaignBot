@@ -45,13 +45,17 @@ eventHandler dis event = case event of
     MessageCreate m -> when (not (fromBot m) && isBotCommand m) $ do
         _ <- restCall dis (R.CreateReaction (messageChannel m, messageId m) "eyes")
         output <- processMessage m
-        _ <- restCall dis (R.CreateMessage (messageChannel m) (convertText output))
+        let outputWithUserName = (getAuthorName m) ++ " rolled " ++ output
+        let reply = R.CreateMessage (messageChannel m) (convertText outputWithUserName)
+        _ <- restCall dis reply
         return ()
     _ -> return ()
 
 isTextChannel :: Channel -> Bool
 isTextChannel (ChannelText {}) = True
 isTextChannel _ = False
+
+getAuthorName = convertText . userName . messageAuthor
 
 fromBot :: Message -> Bool
 fromBot m = userIsBot (messageAuthor m)
