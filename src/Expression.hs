@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleInstances #-}
+
 module Expression where
 
 import Text.ParserCombinators.Parsec
@@ -10,16 +12,28 @@ import Control.Monad.Writer
 import Control.Monad.Trans
 import System.Random
 
+
 data BinOp = AddOp
-            | SubOp
-            | RollOp
-            deriving Show
+           | SubOp
+           | RollOp
+           deriving Show
 
 type Val = Integer
 
 data Expr = Binary BinOp Expr Expr
-            | Value Val
-            deriving Show
+          | Value Val
+          deriving Show
+
+
+class (Show a) => PrettyPrintable a where
+    prettyPrint :: a -> String
+
+instance PrettyPrintable (Int, String) where
+    prettyPrint (i, s) = "Total: " ++ (show i) ++ s
+
+instance PrettyPrintable [Int] where
+    prettyPrint lt = foldl (\a b -> a ++ " " ++ b) "" $ map show lt
+
 
 eofString = "__eof__"
 
@@ -46,7 +60,7 @@ rollDice :: Int -> Int -> WriterT String IO Int
 rollDice mult lim = do
     nums <- liftIO . replicateM mult $ getStdRandom (randomR (1, lim))
     let sum = foldl (+) 0 nums 
-    tell $ "\n" ++ (show mult) ++ "d" ++ (show lim) ++ " rolled " ++ (show sum) ++ " with rolls" ++ (prettyPrintList nums)
+    tell $ "\n" ++ (show mult) ++ "d" ++ (show lim) ++ " rolled " ++ (show sum) ++ " with rolls" ++ (prettyPrint nums)
     return sum
 
 evaluate :: Expr -> WriterT String IO Int
@@ -61,13 +75,6 @@ evaluate expr =
                 SubOp -> return $ l - r
                 RollOp -> rollDice l r
 
-
-prettyPrintPair :: (Int, String) -> String
-prettyPrintPair (i, s) = "Total: " ++ (show i) ++ s
-
-prettyPrintList :: [Int] -> String
-prettyPrintList lt = foldl (\a b -> a ++ " " ++ b) "" $ map show lt
-
 parseStr = do
     e <- expression
     reserved eofString
@@ -77,4 +84,4 @@ processStr :: String -> IO String
 processStr str =
     case parse parseStr "" str of
         Left e -> return $ show e
-        Right r -> prettyPrintPair <$> (runWriterT (evaluate r))
+        Right r -> prettyPrint <$> (runWriterT (evaluate r))
