@@ -61,4 +61,4 @@ messageToString :: Message -> String
 messageToString = convertText . messageText
 
 processMessage :: Message -> IO String
-processMessage m = E.processStr . (++E.eofString) . tail . messageToString $ m
+processMessage m = E.processStr . (++E.eofString) . map toLower . tail . messageToString $ m
