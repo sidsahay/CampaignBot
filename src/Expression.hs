@@ -15,6 +15,8 @@ import System.Random
 
 data BinOp = AddOp
            | SubOp
+           | MulOp
+           | DivOp
            | RollOp
            deriving Show
 
@@ -48,6 +50,7 @@ reserved = Token.reserved lexer
 
 operators = [ 
                 [Infix (reservedOp "d" >> return (Binary RollOp)) AssocLeft]
+                , [Infix (reservedOp "*" >> return (Binary MulOp)) AssocLeft, Infix (reservedOp "/" >> return (Binary DivOp)) AssocLeft]
                 , [Infix (reservedOp "+" >> return (Binary AddOp)) AssocLeft, Infix (reservedOp "-" >> return (Binary SubOp)) AssocLeft]
             ]
 
@@ -73,6 +76,8 @@ evaluate expr =
             case op of
                 AddOp -> return $ l + r
                 SubOp -> return $ l - r
+                MulOp -> return $ l * r
+                DivOp -> return $ l `div` r
                 RollOp -> rollDice l r
 
 parseStr = do
