@@ -77,7 +77,7 @@ evaluate expr =
                 AddOp -> return $ l + r
                 SubOp -> return $ l - r
                 MulOp -> return $ l * r
-                DivOp -> return $ l `div` r
+                DivOp -> return $ if r /= 0 then l `div` r else 0
                 RollOp -> rollDice l r
 
 parseStr = do
