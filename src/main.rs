@@ -77,7 +77,7 @@ fn main() {
 
     let mtx_hashmap = Mutex::new(hashmap);
 
-    let token = fs::read_to_string("test.key").expect("Couldn't read key file.");
+    let token = fs::read_to_string("../../key.key").expect("Couldn't read key file.");
     let mut client = Client::new(&token, Handler::new(mtx_hashmap)).expect("Error creating client");
 
     if let Err(why) = client.start() {
