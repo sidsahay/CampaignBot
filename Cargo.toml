@@ -1,5 +1,5 @@
 [package]
-name = "campaignbotrs"
+name = "campaignbot"
 version = "0.1.0"
 authors = ["sahay"]
 edition = "2018"
@@ -10,4 +10,3 @@ edition = "2018"
 serenity = "0.7.2"
 rand = "0.7.0"
 nom = "5.0"
-sqlite3 = "0.24.0"

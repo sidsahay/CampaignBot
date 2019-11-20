@@ -1,4 +1,4 @@
-extern crate campaignbotrs;
+extern crate campaignbot;
 
 use std::sync::Mutex;
 use std::fs;
@@ -27,8 +27,8 @@ impl EventHandler for Handler {
                 println!("Error reacting: {:?}", why);
             }
 
-            let ans = match campaignbotrs::parsers::evaluate(&msg.content[1..]) {
-                Ok(l) => campaignbotrs::parsers::stringify(l),
+            let ans = match campaignbot::parsers::evaluate(&msg.content[1..]) {
+                Ok(l) => campaignbot::parsers::stringify(l),
                 Err(e) => e.to_string()
             };
 
