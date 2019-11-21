@@ -33,8 +33,13 @@ impl LoggedResult {
     }
 
     fn div(&mut self, other: &LoggedResult) {
-        self.value = self.value / other.value;
-        self.log.push_str(&other.log);
+        if other.value == 0 {
+            self.value = 0;
+            self.log.push_str("\nInvalid operation: division by zero")
+        } else {
+            self.value = self.value / other.value;
+            self.log.push_str(&other.log);
+        }
     }
 
     fn roll(&mut self, other: &LoggedResult) {
@@ -54,6 +59,16 @@ fn str_to_logged_result(s: &str) -> Result<LoggedResult, &str> {
 }
 
 fn roll_dice(num: i64, value: i64) -> LoggedResult {
+    if num < 0 || value < 1 {
+        let mut s = String::from("Invalid operation in ");
+        s.push_str(&num.to_string());
+        s.push('d');
+        s.push_str(&value.to_string());
+        s.push_str(": x < 0 || y < 1 in xdy");
+
+        return LoggedResult { value: 0, log: s }
+    }
+
     let mut rng = rand::thread_rng();
     let die = Uniform::new_inclusive(1, value);
 
