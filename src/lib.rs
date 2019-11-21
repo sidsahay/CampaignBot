@@ -3,12 +3,9 @@ use pest::prec_climber::*;
 use pest_derive::Parser;
 use pest::iterators::{Pairs, Pair};
 use lazy_static::lazy_static;
-use rand::distributions::{Distribution, Uniform};
 use std::str::FromStr;
 
-extern crate rand;
-use rand::Rng;
-use rand::rngs::OsRng;
+extern crate QuantumRandom;
 
 #[derive(Parser)]
 #[grammar = "expression.pest"]
@@ -71,9 +68,11 @@ fn roll_dice(num: i64, value: i64) -> LoggedResult {
         s.push_str(": x < 0 || y < 1 in xdy");
 
         return LoggedResult { value: 0, log: s }
+    } else if num > 1024 {
+        return LoggedResult { value: 0, log: "Too many required random numbers for the QRNG.".to_string() }
     }
 
-    let mut rng = OsRng;
+    let randoms = QuantumRandom::random::next_u64s(num as u32).expect("QRNG failed.");
 
     let mut rolls = String::new();
     rolls.push_str(&num.to_string());
@@ -83,11 +82,11 @@ fn roll_dice(num: i64, value: i64) -> LoggedResult {
 
     let mut sum: i64 = 0;
 
-    for _ in 0..num {
-        let n = rng.gen_range(0, value) + 1;
-        sum = sum + n;
+    for n in randoms {
+        let n_shifted = 1 + ((n / 2) as i64) % value;
+        sum = sum + n_shifted;
         rolls.push_str(" ");
-        rolls.push_str(&n.to_string());
+        rolls.push_str(&n_shifted.to_string());
     }
 
     LoggedResult { value: sum, log: rolls }
