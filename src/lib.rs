@@ -70,7 +70,6 @@ fn roll_dice(num: i64, value: i64) -> LoggedResult {
     }
 
     let mut rng = rand::thread_rng();
-    let die = Uniform::new_inclusive(1, value);
 
     let mut rolls = String::new();
     rolls.push_str(&num.to_string());
@@ -81,7 +80,7 @@ fn roll_dice(num: i64, value: i64) -> LoggedResult {
     let mut sum: i64 = 0;
 
     for _ in 0..num {
-        let n = die.sample(&mut rng);
+        let n = rng.gen_range(0, value) + 1;
         sum = sum + n;
         rolls.push_str(" ");
         rolls.push_str(&n.to_string());
