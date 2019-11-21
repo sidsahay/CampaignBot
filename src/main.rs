@@ -25,11 +25,6 @@ impl EventHandler for Handler {
                 println!("Error reacting: {:?}", why);
             }
 
-//            let ans = match campaignbot::parsers::evaluate(&msg.content[1..]) {
-//                Ok(l) => campaignbot::parsers::stringify(l),
-//                Err(e) => e.to_string()
-//            };
-
             let ans = campaignbot::evaluate_expression(&msg.content[1..]);
 
             if let Err(why) = msg.reply(&ctx, &ans) {
