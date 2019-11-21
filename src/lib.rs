@@ -5,6 +5,7 @@ use pest::iterators::{Pairs, Pair};
 use lazy_static::lazy_static;
 use rand::distributions::{Distribution, Uniform};
 use std::str::FromStr;
+use rand::Rng;
 
 #[derive(Parser)]
 #[grammar = "expression.pest"]
