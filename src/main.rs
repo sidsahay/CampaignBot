@@ -21,20 +21,20 @@ impl EventHandler for Handler {
         let ch = &msg.content[0..1];
 
         if ch == "!" {
-            if let Err(why) = msg.react(&ctx, "👀") {
+            /*if let Err(why) = msg.react(&ctx, "👀") {
                 println!("Error reacting: {:?}", why);
             }
-
+*/
             let ans = campaignbot::evaluate_expression(&msg.content[1..]);
 
             if let Err(why) = msg.reply(&ctx, &ans) {
                 println!("Error sending message: {:?}", why);
             }
         } else if ch == "$" {
-            if let Err(why) = msg.react(&ctx, "👀") {
+            /*if let Err(why) = msg.react(&ctx, "👀") {
                 println!("Error reacting: {:?}", why);
             }
-
+*/
             let mut hashmap = self.mtx_hashmap.lock().unwrap();
 
             let s = &msg.content[1..];
