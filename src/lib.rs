@@ -6,6 +6,7 @@ use lazy_static::lazy_static;
 use rand::distributions::{Distribution, Uniform};
 use std::str::FromStr;
 use rand::Rng;
+use rand::rngs::OsRng;
 
 #[derive(Parser)]
 #[grammar = "expression.pest"]
@@ -70,7 +71,7 @@ fn roll_dice(num: i64, value: i64) -> LoggedResult {
         return LoggedResult { value: 0, log: s }
     }
 
-    let mut rng = rand::thread_rng();
+    let mut rng = OsRng::new();
 
     let mut rolls = String::new();
     rolls.push_str(&num.to_string());
