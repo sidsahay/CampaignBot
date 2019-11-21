@@ -71,7 +71,7 @@ fn roll_dice(num: i64, value: i64) -> LoggedResult {
         return LoggedResult { value: 0, log: s }
     }
 
-    let mut rng = OsRng::new();
+    let mut rng = OsRng::new().unwrap();
 
     let mut rolls = String::new();
     rolls.push_str(&num.to_string());
