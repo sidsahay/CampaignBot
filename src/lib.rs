@@ -5,6 +5,8 @@ use pest::iterators::{Pairs, Pair};
 use lazy_static::lazy_static;
 use rand::distributions::{Distribution, Uniform};
 use std::str::FromStr;
+
+extern crate rand;
 use rand::Rng;
 use rand::rngs::OsRng;
 
@@ -71,7 +73,7 @@ fn roll_dice(num: i64, value: i64) -> LoggedResult {
         return LoggedResult { value: 0, log: s }
     }
 
-    let mut rng = OsRng::new().unwrap();
+    let mut rng = OsRng;
 
     let mut rolls = String::new();
     rolls.push_str(&num.to_string());
