@@ -94,7 +94,9 @@ fn roll_dice(num: i64, value: i64) -> LoggedResult {
 
 pub fn stringify(l: LoggedResult) -> String {
     let mut s = l.value.to_string();
+    s.push_str(" ```");
     s.push_str(&l.log);
+    s.push_str("```");
     s
 }
 
