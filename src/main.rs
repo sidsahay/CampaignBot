@@ -20,7 +20,7 @@ impl EventHandler for Handler {
     fn message(&self, ctx: Context, msg: Message) {
         let ch = &msg.content[0..1];
 
-        if ch == "!" {
+        if ch == "$" {
             /*if let Err(why) = msg.react(&ctx, "👀") {
                 println!("Error reacting: {:?}", why);
             }
@@ -30,7 +30,7 @@ impl EventHandler for Handler {
             if let Err(why) = msg.reply(&ctx, &ans) {
                 println!("Error sending message: {:?}", why);
             }
-        } else if ch == "$" {
+        } else if ch == "%" {
             /*if let Err(why) = msg.react(&ctx, "👀") {
                 println!("Error reacting: {:?}", why);
             }

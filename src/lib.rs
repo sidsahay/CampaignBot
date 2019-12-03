@@ -4,8 +4,8 @@ use pest_derive::Parser;
 use pest::iterators::{Pairs, Pair};
 use lazy_static::lazy_static;
 use std::str::FromStr;
-
-extern crate QuantumRandom;
+use rand::{Rng, SeedableRng};
+use rand::rngs::SmallRng;
 
 #[derive(Parser)]
 #[grammar = "expression.pest"]
@@ -72,8 +72,6 @@ fn roll_dice(num: i64, value: i64) -> LoggedResult {
         return LoggedResult { value: 0, log: "Too many required random numbers for the QRNG.".to_string() }
     }
 
-    let randoms = QuantumRandom::random::next_u64s(num as u32).expect("QRNG failed.");
-
     let mut rolls = String::new();
     rolls.push_str(&num.to_string());
     rolls.push_str("d");
@@ -82,11 +80,13 @@ fn roll_dice(num: i64, value: i64) -> LoggedResult {
 
     let mut sum: i64 = 0;
 
-    for n in randoms {
-        let n_shifted = 1 + ((n / 2) as i64) % value;
-        sum = sum + n_shifted;
+    let mut rng = SmallRng::from_entropy();
+
+    for _ in 0..num {
+        let n = rng.gen_range(0, value+1);
+        sum = sum + n;
         rolls.push_str(" ");
-        rolls.push_str(&n_shifted.to_string());
+        rolls.push_str(&n.to_string());
     }
 
     LoggedResult { value: sum, log: rolls }
@@ -136,6 +136,6 @@ fn eval(expression: Pairs<Rule>) -> LoggedResult {
 pub fn evaluate_expression(s: &str) -> String {
     match ExpressionParser::parse(Rule::calculation, s) {
         Ok(exprs) => stringify(eval(exprs)),
-        Err(e) => format!("{}", e)
+        Err(_e) => "Invalid expression.".to_string(),
     }
 }
