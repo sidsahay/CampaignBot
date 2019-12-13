@@ -83,7 +83,7 @@ fn roll_dice(num: i64, value: i64) -> LoggedResult {
     let mut rng = SmallRng::from_entropy();
 
     for _ in 0..num {
-        let n = rng.gen_range(0, value+1);
+        let n = rng.gen_range(0, value) + 1;
         sum = sum + n;
         rolls.push_str(" ");
         rolls.push_str(&n.to_string());
