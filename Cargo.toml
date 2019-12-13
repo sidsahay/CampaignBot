@@ -1,6 +1,6 @@
 [package]
 name = "campaignbot"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["sahay"]
 edition = "2018"
 
@@ -12,3 +12,4 @@ rand = { version = "0.7.2", features = ["small_rng"] }
 pest = "2.1.2"
 pest_derive = "2.1.0"
 lazy_static = "1.4.0"
+redis = "0.13.0"

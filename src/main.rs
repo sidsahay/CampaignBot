@@ -4,15 +4,15 @@ use serenity::{
     model::{channel::Message, gateway::Ready},
     prelude::*,
 };
-use std::collections::HashMap;
+use redis::Commands;
 
 struct Handler {
-    mtx_hashmap: Mutex<HashMap<String, String>>,
+    mtx_client: Mutex<redis::Client>,
 }
 
 impl Handler {
-    fn new(mtx_hashmap: Mutex<HashMap<String, String>>) -> Handler {
-        Handler { mtx_hashmap }
+    fn new(mtx_client: Mutex<redis::Client>) -> Handler {
+        Handler { mtx_client }
     }
 }
 
@@ -21,29 +21,24 @@ impl EventHandler for Handler {
         let ch = &msg.content[0..1];
 
         if ch == "$" {
-            /*if let Err(why) = msg.react(&ctx, "👀") {
-                println!("Error reacting: {:?}", why);
-            }
-*/
             let ans = campaignbot::evaluate_expression(&msg.content[1..]);
 
             if let Err(why) = msg.reply(&ctx, &ans) {
                 println!("Error sending message: {:?}", why);
             }
         } else if ch == "%" {
-            /*if let Err(why) = msg.react(&ctx, "👀") {
-                println!("Error reacting: {:?}", why);
-            }
-*/
-            let mut hashmap = self.mtx_hashmap.lock().unwrap();
+            let client = self.mtx_client.lock().unwrap();
+            let mut conn = client.get_connection().unwrap();
 
             let s = &msg.content[1..];
             match s.find('=') {
                 None => {
-                    let reply = match (*hashmap).get(s) {
-                        None => "Error: key not found.",
+                    let reply = {
+                        let val : Option<String> = conn.get(s).unwrap();
+                        match val{
+                        None => "Error: key not found.".to_owned(),
                         Some(v) => v,
-                    };
+                    }};
                     if let Err(why) = msg.reply(&ctx, reply) {
                         println!("Error sending message: {:?}", why);
                     }
@@ -51,7 +46,7 @@ impl EventHandler for Handler {
                 Some(pos) => {
                     let key = &s[..pos];
                     let val = &s[pos + 1..];
-                    (*hashmap).insert(key.to_string(), val.to_string());
+                    let _: () = conn.set(key, val).unwrap();
                     if let Err(why) = msg.reply(&ctx, "key-val stored.") {
                         println!("Error sending message: {:?}", why);
                     }
@@ -67,13 +62,11 @@ impl EventHandler for Handler {
 
 
 fn main() {
-    let mut hashmap = HashMap::new();
-    hashmap.insert("test_key".to_string(), "test_value".to_string());
-
-    let mtx_hashmap = Mutex::new(hashmap);
+    let client = redis::Client::open("redis://127.0.0.1/").unwrap();
+    let mtx_client = Mutex::new(client);
 
     let token = fs::read_to_string("key.key").expect("Couldn't read key file.");
-    let mut client = Client::new(&token, Handler::new(mtx_hashmap)).expect("Error creating client");
+    let mut client = Client::new(&token, Handler::new(mtx_client)).expect("Error creating client");
 
     if let Err(why) = client.start() {
         println!("Client error {}", why);
