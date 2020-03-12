@@ -80,12 +80,7 @@ fn roll_dice(num: i64, value: i64) -> LoggedResult {
     let mut sum: i64 = 0;
 
     for _ in 0..num {
-        //because I have been accused of not generating random enough values
-        let n0 = OsRng.gen_range(0, value);
-        let n1 = OsRng.gen_range(0, value);
-        let n2 = OsRng.gen_range(0, value);
-
-        let n = (n0 + n1 + n2) % value + 1;
+        let n = OsRng.gen_range(0, value) + 1;
         sum = sum + n;
         rolls.push_str(" ");
         rolls.push_str(&n.to_string());
