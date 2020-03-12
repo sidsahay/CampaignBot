@@ -4,8 +4,8 @@ use pest_derive::Parser;
 use pest::iterators::{Pairs, Pair};
 use lazy_static::lazy_static;
 use std::str::FromStr;
-use rand::{Rng, SeedableRng};
-use rand::rngs::SmallRng;
+use rand::{Rng, SeedableRng, thread_rng};
+use rand::rngs::{SmallRng, OsRng};
 
 #[derive(Parser)]
 #[grammar = "expression.pest"]
@@ -66,10 +66,9 @@ fn roll_dice(num: i64, value: i64) -> LoggedResult {
         s.push('d');
         s.push_str(&value.to_string());
         s.push_str(": x < 0 || y < 1 in xdy");
-
         return LoggedResult { value: 0, log: s }
     } else if num > 1024 {
-        return LoggedResult { value: 0, log: "Too many required random numbers for the QRNG.".to_string() }
+        return LoggedResult { value: 0, log: "Random number count exceeded.".to_string() }
     }
 
     let mut rolls = String::new();
@@ -80,10 +79,13 @@ fn roll_dice(num: i64, value: i64) -> LoggedResult {
 
     let mut sum: i64 = 0;
 
-    let mut rng = SmallRng::from_entropy();
-
     for _ in 0..num {
-        let n = rng.gen_range(0, value) + 1;
+        //because I have been accused of not generating random enough values
+        let n0 = OsRng.gen_range(0, value);
+        let n1 = OsRng.gen_range(0, value);
+        let n2 = OsRng.gen_range(0, value);
+
+        let n = (n0 + n1 + n2) % value + 1;
         sum = sum + n;
         rolls.push_str(" ");
         rolls.push_str(&n.to_string());
@@ -94,9 +96,11 @@ fn roll_dice(num: i64, value: i64) -> LoggedResult {
 
 pub fn stringify(l: LoggedResult) -> String {
     let mut s = l.value.to_string();
-    s.push_str(" ```");
-    s.push_str(&l.log);
-    s.push_str("```");
+    if l.log != "" {
+        s.push_str(" ```");
+        s.push_str(&l.log);
+        s.push_str("```");
+    }
     s
 }
 
