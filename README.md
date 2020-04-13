@@ -5,4 +5,4 @@ This bot evaluates expressions with a custom `d` operator acting as a dice roll.
 It also has a Redis backend for storing string key-value pairs. To store a key-val pair, type `%key=val`, to retrieve type `%key`.
 
 ## Running the bot
-The code expects your Discord bot token in a file called "key.key" in the same directory as the Cargo.toml file. It also expects a Redis server runningat localhost with no password. Just compile and run via Cargo.
+The code expects your Discord bot token in a file called "key.key" in the same directory as the `Cargo.toml` file. It also expects a Redis server running at localhost with no password. Just compile and run via Cargo.
