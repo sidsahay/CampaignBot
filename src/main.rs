@@ -62,10 +62,11 @@ impl EventHandler for Handler {
                 }
             }
             else if cmd == "k" {
+                let s = &msg.content[3..];
+
                 let client = self.mtx_client.lock().unwrap();
                 let mut conn = client.get_connection().unwrap();
 
-                let s = &msg.content[3..];
                 match s.find('=') {
                     None => {
                         let reply = {
